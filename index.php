@@ -43,22 +43,22 @@ $app->get('/usuario', function () use ($app) {
 
 $app->post('/usuario', function () use ($app) {
 	$input = $app->request->getBody();
-	
-	$name = $input->name;
+
+	$name = $input['name'];
 	if(empty($name)){
 		$app->render(500,array(
 			'error' => TRUE,
             'msg'   => 'name is required',
         ));
 	}
-	$password = $input->password;
+	$password = $input['password'];
 	if(empty($password)){
 		$app->render(500,array(
 			'error' => TRUE,
             'msg'   => 'password is required',
         ));
 	}
-	$email = $input->email;
+	$email = $input['email'];
 	if(empty($email)){
 		$app->render(500,array(
 			'error' => TRUE,
@@ -78,21 +78,21 @@ $app->post('/usuario', function () use ($app) {
 $app->put('/usuario/:id', function ($id) use ($app) {
 	$input = $app->request->getBody();
 	
-	$name = $input->name;
+	$name = $input['name'];
 	if(empty($name)){
 		$app->render(500,array(
 			'error' => TRUE,
             'msg'   => 'name is required',
         ));
 	}
-	$password = $input->password;
+	$password = $input['password'];
 	if(empty($password)){
 		$app->render(500,array(
 			'error' => TRUE,
             'msg'   => 'password is required',
         ));
 	}
-	$email = $input->email;
+	$email = $input['email'];
 	if(empty($email)){
 		$app->render(500,array(
 			'error' => TRUE,
