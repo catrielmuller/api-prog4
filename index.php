@@ -42,21 +42,23 @@ $app->get('/usuario', function () use ($app) {
 });
 
 $app->post('/usuario', function () use ($app) {
-	$name = $app->request->params('name');
+	$input = $app->request->getBody();
+	
+	$name = $input->name;
 	if(empty($name)){
 		$app->render(500,array(
 			'error' => TRUE,
             'msg'   => 'name is required',
         ));
 	}
-	$password = $app->request->params('password');
+	$password = $input->password;
 	if(empty($password)){
 		$app->render(500,array(
 			'error' => TRUE,
             'msg'   => 'password is required',
         ));
 	}
-	$email = $app->request->params('email');
+	$email = $input->email;
 	if(empty($email)){
 		$app->render(500,array(
 			'error' => TRUE,
@@ -65,32 +67,32 @@ $app->post('/usuario', function () use ($app) {
 	}
 
     $user = new User();
-    $user->name = $app->request->params('name');
-    $user->password = $app->request->params('password');
-    $user->email = $app->request->params('email');
+    $user->name = $name;
+    $user->password = $password;
+    $user->email = $email;
     $user->save();
 
     $app->render(200,array('data' => $user->toArray()));
 });
 
 $app->put('/usuario/:id', function ($id) use ($app) {
-	$body = $app->request->getBody();
+	$input = $app->request->getBody();
 	
-	$name = $app->request->params('name');
+	$name = $input->name;
 	if(empty($name)){
 		$app->render(500,array(
 			'error' => TRUE,
             'msg'   => 'name is required',
         ));
 	}
-	$password = $app->request->params('password');
+	$password = $input->password;
 	if(empty($password)){
 		$app->render(500,array(
 			'error' => TRUE,
             'msg'   => 'password is required',
         ));
 	}
-	$email = $app->request->params('email');
+	$email = $input->email;
 	if(empty($email)){
 		$app->render(500,array(
 			'error' => TRUE,
@@ -105,9 +107,9 @@ $app->put('/usuario/:id', function ($id) use ($app) {
             'msg'   => 'user not found',
         ));
 	}
-    $user->name = $app->request->params('name');
-    $user->password = $app->request->params('password');
-    $user->email = $app->request->params('email');
+    $user->name = $name;
+    $user->password = $password;
+    $user->email = $email;
     $user->save();
     $app->render(200,array('data' => $user->toArray()));
 });
