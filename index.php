@@ -1,4 +1,8 @@
 <?php 
+ini_set('display_errors',1);
+ini_set('display_startup_errors',1);
+error_reporting(-1);
+
 require 'vendor/autoload.php';
 require 'Models/User.php';
 
@@ -20,15 +24,24 @@ $app->add(new Zeuxisoo\Laravel\Database\Eloquent\ModelMiddleware);
 
 $app->view(new \JsonApiView());
 $app->add(new \JsonApiMiddleware());
+$app->add(new \Slim\Middleware\ContentTypes());
+
+$app->options('/(:name+)', function() use ($app) {
+    $app->render(200,array('msg' => 'API PROG4'));
+});
+
+$app->get('/', function () use ($app) {
+	$app->render(200,array('msg' => 'API PROG4'));
+});
 
 $app->get('/usuario', function () use ($app) {
 	$db = $app->db->getConnection();
-	$users = $db->table('users')->select('id', 'name')->get();
+	$users = $db->table('usuarios')->select('id', 'name')->get();
 
 	$app->render(200,array('data' => $users));
 });
 
-$app->put('/usuario', function () use ($app) {
+$app->post('/usuario', function () use ($app) {
 	$name = $app->request->params('name');
 	if(empty($name)){
 		$app->render(500,array(
@@ -60,7 +73,9 @@ $app->put('/usuario', function () use ($app) {
     $app->render(200,array('data' => $user->toArray()));
 });
 
-$app->post('/usuario/:id', function ($id) use ($app) {
+$app->put('/usuario/:id', function ($id) use ($app) {
+	$body = $app->request->getBody();
+	
 	$name = $app->request->params('name');
 	if(empty($name)){
 		$app->render(500,array(
