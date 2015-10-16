@@ -11,10 +11,10 @@ $app = new \Slim\Slim();
 $app->config('databases', [
     'default' => [
         'driver'    => 'mysql',
-        'host'      => 'localhost',
-        'database'  => 'api-prog4',
-        'username'  => 'api-prog4',
-        'password'  => 'api-prog4',
+        'host'      => 'us-cdbr-iron-east-03.cleardb.net',
+        'database'  => 'heroku_1b8d86b68669138',
+        'username'  => 'beaffd044d7f83',
+        'password'  => '7ef59720',
         'charset'   => 'utf8',
         'collation' => 'utf8_general_ci',
         'prefix'    => ''
