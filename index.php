@@ -6,6 +6,8 @@ error_reporting(-1);
 require 'vendor/autoload.php';
 require 'Models/User.php';
 
+session_start();
+
 $app = new \Slim\Slim();
 
 $app->config('databases', [
@@ -32,6 +34,64 @@ $app->options('/(:name+)', function() use ($app) {
 
 $app->get('/', function () use ($app) {
 	$app->render(200,array('msg' => 'API PROG4'));
+});
+
+$app->post('/login', function () use ($app) {
+	$input = $app->request->getBody();
+
+	$email = $input['email'];
+	if(empty($email)){
+		$app->render(500,array(
+			'error' => TRUE,
+            'msg'   => 'email is required',
+        ));
+	}
+	$password = $input['password'];
+	if(empty($password)){
+		$app->render(500,array(
+			'error' => TRUE,
+            'msg'   => 'password is required',
+        ));
+	}
+
+	$db = $app->db->getConnection();
+	$user = $db->table('usuarios')->select()->where('email', $email)->first();
+
+	if(empty($user)){
+		$app->render(500,array(
+			'error' => TRUE,
+            'msg'   => 'user not exist',
+        ));
+	}
+
+	if($user->password != $password){
+		$app->render(500,array(
+			'error' => TRUE,
+            'msg'   => 'password dont match',
+        ));
+	}
+
+	$_SESSION["user"] = $user->id;
+
+	$app->render(200,array('data' => $user->toArray()));
+});
+
+$app->get('/me', function () use ($app) {
+
+	if(empty($_SESSION["user"])){
+		$app->render(500,array(
+			'error' => TRUE,
+            'msg'   => 'Not logged',
+        ));
+	}
+	$user = User::find($_SESSION["user"]);
+	if(empty($user)){
+		$app->render(500,array(
+			'error' => TRUE,
+            'msg'   => 'Not logged',
+        ));
+	}
+	$app->render(200,array('data' => $user->toArray()));
 });
 
 $app->get('/usuario', function () use ($app) {
