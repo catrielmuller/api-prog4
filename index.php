@@ -73,7 +73,7 @@ $app->post('/login', function () use ($app) {
 
 	$_SESSION["user"] = $user->id;
 
-	$app->render(200,array('data' => $user->toArray()));
+	$app->render(200,array());
 });
 
 $app->get('/me', function () use ($app) {
