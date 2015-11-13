@@ -6,7 +6,15 @@ error_reporting(-1);
 require 'vendor/autoload.php';
 require 'Models/User.php';
 
-session_start();
+function simple_encrypt($text,$salt){  
+   return trim(base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_256, $salt, $text, MCRYPT_MODE_ECB, mcrypt_create_iv(mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB), MCRYPT_RAND))));
+}
+ 
+function simple_decrypt($text,$salt){  
+    return trim(mcrypt_decrypt(MCRYPT_RIJNDAEL_256, $salt, base64_decode($text), MCRYPT_MODE_ECB, mcrypt_create_iv(mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB), MCRYPT_RAND)));
+}
+
+$enc_key = 'kjrghekjrhgluhfgliuehdbivudfhlsghfglj';
 
 $app = new \Slim\Slim();
 
@@ -71,9 +79,9 @@ $app->post('/login', function () use ($app) {
         ));
 	}
 
-	$_SESSION["user"] = $user->id;
+	$token = simple_encrypt($user->id, $enc_key);	
 
-	$app->render(200,array());
+	$app->render(200,array('token' => $token));
 });
 
 $app->get('/me', function () use ($app) {
