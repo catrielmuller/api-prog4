@@ -15,7 +15,7 @@ function simple_decrypt($text,$salt){
 }
 
 $app = new \Slim\Slim();
-$app->enc_key = 'kjrghekjrhgluhfgliuehdbivudfhlsghfglj';
+$app->enc_key = '1234567891234567';
 
 
 $app->config('databases', [
