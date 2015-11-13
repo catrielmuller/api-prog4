@@ -14,9 +14,9 @@ function simple_decrypt($text,$salt){
     return trim(mcrypt_decrypt(MCRYPT_RIJNDAEL_256, $salt, base64_decode($text), MCRYPT_MODE_ECB, mcrypt_create_iv(mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB), MCRYPT_RAND)));
 }
 
-$enc_key = 'kjrghekjrhgluhfgliuehdbivudfhlsghfglj';
-
 $app = new \Slim\Slim();
+$app->enc_key = 'kjrghekjrhgluhfgliuehdbivudfhlsghfglj';
+
 
 $app->config('databases', [
     'default' => [
@@ -79,7 +79,7 @@ $app->post('/login', function () use ($app) {
         ));
 	}
 
-	$token = simple_encrypt($user->id, $enc_key);	
+	$token = simple_encrypt($user->id, $app->enc_key);	
 
 	$app->render(200,array('token' => $token));
 });
