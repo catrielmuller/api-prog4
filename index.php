@@ -6,6 +6,7 @@ error_reporting(-1);
 require 'vendor/autoload.php';
 require 'Models/User.php';
 require 'Models/Post.php';
+require 'Models/Comment.php';
 
 function simple_encrypt($text,$salt){  
    return trim(base64_encode(mcrypt_encrypt(MCRYPT_RIJNDAEL_256, $salt, $text, MCRYPT_MODE_ECB, mcrypt_create_iv(mcrypt_get_iv_size(MCRYPT_RIJNDAEL_256, MCRYPT_MODE_ECB), MCRYPT_RAND))));
@@ -253,6 +254,178 @@ $app->get('/post/:id', function ($id) use ($app) {
 	unset($post->id_usuario);
 	
 	$app->render(200,array('data' => $post->toArray()));
+});
+
+$app->post('/post', function () use ($app) {
+	$token = $app->request->headers->get('auth-token');
+
+	if(empty($token)){
+		$app->render(500,array(
+			'error' => TRUE,
+            'msg'   => 'Not logged',
+        ));
+	}
+
+	$id_user_token = simple_decrypt($token, $app->enc_key);
+
+	$user = User::find($id_user_token);
+	if(empty($user)){
+		$app->render(500,array(
+			'error' => TRUE,
+            'msg'   => 'Not logged',
+        ));
+	}
+
+	$input = $app->request->getBody();
+	
+	$title = $input['title'];
+	if(empty($title)){
+		$app->render(500,array(
+			'error' => TRUE,
+            'msg'   => 'title is required',
+        ));
+	}
+	
+	$post = new Post();
+	$post->title = $title;
+    $post->id_usuario = $user->id;
+    $post->save();
+    $app->render(200,array('data' => $post->toArray()));
+});
+
+$app->post('/post/:id/comment', function ($id) use ($app) {
+	$token = $app->request->headers->get('auth-token');
+
+	if(empty($token)){
+		$app->render(500,array(
+			'error' => TRUE,
+            'msg'   => 'Not logged',
+        ));
+	}
+
+	$id_user_token = simple_decrypt($token, $app->enc_key);
+
+	$user = User::find($id_user_token);
+	if(empty($user)){
+		$app->render(500,array(
+			'error' => TRUE,
+            'msg'   => 'Not logged',
+        ));
+	}
+
+	$db = $app->db->getConnection();
+	$post = Post::find($id);
+	if(empty($post)){
+		$app->render(404,array(
+			'error' => TRUE,
+            'msg'   => 'post not found',
+        ));
+	}
+
+	$input = $app->request->getBody();
+	$text = $input['text'];
+	if(empty($text)){
+		$app->render(500,array(
+			'error' => TRUE,
+            'msg'   => 'text is required',
+        ));
+	}
+
+	$comment = new Comment();
+	$comment->text = $text;
+	$comment->id_usuario = $user->id;
+	$comment->id_post = $post->id;
+	$comment->save();
+	
+	$app->render(200,array('data' => $comment->toArray()));
+});
+
+$app->post('/post/:id/multicomment', function ($id) use ($app) {
+	$token = $app->request->headers->get('auth-token');
+
+	if(empty($token)){
+		$app->render(500,array(
+			'error' => TRUE,
+            'msg'   => 'Not logged',
+        ));
+	}
+
+	$id_user_token = simple_decrypt($token, $app->enc_key);
+
+	$user = User::find($id_user_token);
+	if(empty($user)){
+		$app->render(500,array(
+			'error' => TRUE,
+            'msg'   => 'Not logged',
+        ));
+	}
+
+	$db = $app->db->getConnection();
+	$post = Post::find($id);
+	if(empty($post)){
+		$app->render(404,array(
+			'error' => TRUE,
+            'msg'   => 'post not found',
+        ));
+	}
+
+	$input = $app->request->getBody();
+	$text = $input['text'];
+	if(empty($text)){
+		$app->render(500,array(
+			'error' => TRUE,
+            'msg'   => 'text is required',
+        ));
+	}
+
+	$text_array = explode(',', $text);
+
+	$created = array();
+
+	foreach ($text_array as $key => $text) {
+		$comment = new Comment();
+		$comment->text = $text;
+		$comment->id_usuario = $user->id;
+		$comment->id_post = $post->id;
+		$comment->save();
+		$created[] = $comment->toArray();
+	}
+
+	$app->render(200,array('data' => $created));
+});
+
+$app->get('/profile', function () use ($app) {
+	$token = $app->request->headers->get('auth-token');
+
+	if(empty($token)){
+		$app->render(500,array(
+			'error' => TRUE,
+            'msg'   => 'Not logged',
+        ));
+	}
+
+	$id_user_token = simple_decrypt($token, $app->enc_key);
+
+	$user = User::find($id_user_token);
+	if(empty($user)){
+		$app->render(500,array(
+			'error' => TRUE,
+            'msg'   => 'Not logged',
+        ));
+	}
+
+	$db = $app->db->getConnection();
+	$posts = $db->table('posts')->select()->where('id_usuario', $user->id)->get();
+
+	foreach ($posts as $key => $post) {
+		$comments = $db->table('comments')->select()->where('id_post', $post->id)->get();
+		foreach ($comments as $keyc => $comment) {
+			$comments[$keyc]->user = User::find($comment->id_usuario);
+		}
+		$posts[$key]->comments = $comments;
+	}
+	
+	$app->render(200,array('data' => $posts));
 });
 
 $app->run();
