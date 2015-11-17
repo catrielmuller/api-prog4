@@ -428,5 +428,31 @@ $app->get('/profile', function () use ($app) {
 	$app->render(200,array('data' => $posts));
 });
 
+$app->post('/findcomments', function () use ($app) {
+	$input = $app->request->getBody();
+	$text = $input['text'];
+	if(empty($text)){
+		$app->render(500,array(
+			'error' => TRUE,
+            'msg'   => 'text is required',
+        ));
+	}
+
+
+	$db = $app->db->getConnection();
+	$query = $db->table('comments')->select()->where('text', 'like', '%'.$text.'%');
+
+	if(isset($input['user'])){
+		$user = $input['user'];
+		if(!empty($user)){
+			$query = $query->where('id_usuario', $user);
+		}
+	}	
+
+	$comments = $query->get();
+
+	$app->render(200,array('data' => $comments));
+});
+
 $app->run();
 ?>
